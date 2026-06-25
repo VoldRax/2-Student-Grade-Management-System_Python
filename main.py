@@ -5,25 +5,31 @@ import os
 
 STUDENTS = {}
 
+
 def clearConsole():
-    os.system("cls")
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
+
 
 def studentTemplate(marks):
     return {
         "Maths": marks[0],
         "Physics": marks[1],
-        "Chemistry": marks[2],
-        "Percentage": marks[3],
+        "Chemistry": marks[2]
     }
 
+
 def printStudent(studentName, marks):
-    print("\nName: ", studentName, "\n")
+    print("\nName: ", studentName.capitalize(), "\n")
     print("-----Marks-----\n")
     print("Maths: ", marks["Maths"])
     print("Physics: ", marks["Physics"])
     print("Chemistry: ", marks["Chemistry"], "\n")
-    print("Percentage: ", marks["Percentage"], "\n")
+    print(f"Percentage: {calculatePercentage(marks):.2f}\n")
     print("-" * 15, "\n")
+
 
 def menu():
 
@@ -105,45 +111,75 @@ def menu():
                 print("Invalid choice!")
                 input("\nPress Enter...")
 
+def calculatePercentage(marks):
+    return (marks["Maths"] + marks["Physics"] + marks["Chemistry"])/3
+
+
+def checkDuplicates(name):
+    if name in STUDENTS:
+        print("Name already exists !!!")
+        return True
+
+    return False
+
+def getMarks(subject):
+    while True:
+        try:
+            marks = float(input(f"Enter {subject} marks (0-100): "))
+
+            if 0 <= marks <= 100:
+                return marks
+
+            print("Marks must be between 0 and 100.\n")
+
+        except ValueError:
+            print("Please enter a valid number.\n")
+
+
 def addStudent():
 
-    name = input("Enter the name of the student: ")
+    name = input("Enter the name of the student: ").lower()
 
-    maths = float(input("Enter the marks on Maths: "))
-    physics = float(input("Enter the marks in Physics: "))
-    chemistry = float(input("Enter the marks in Chemistry: "))
+    if checkDuplicates(name):
+        return
 
-    percentage = ((maths + physics + chemistry) * 100) / 300
+    maths = getMarks("Maths")
+    physics = getMarks("Physics")
+    chemistry = getMarks("Chemistry")
 
-    STUDENTS[name] = studentTemplate([maths, physics, chemistry, percentage])
+    STUDENTS[name] = studentTemplate([maths, physics, chemistry])
 
     print("Student added successfully !!!")
 
-def updateStudent():
-    name = input("Enter the name of the student: ")
 
-    for student, marks in STUDENTS.items():
-        if name == student:
-            marks["Maths"] = float(input("Enter the marks on Maths: "))
-            marks["Physics"] = float(input("Enter the marks in Physics: "))
-            marks["Chemistry"] = float(input("Enter the marks in Chemistry: "))
-            marks["Percentage"] = ((marks["Maths"] + marks["Physics"] + marks["Chemistry"]) * 100) / 300
-            print("\nStudent marks updated !!!")
-            return
-    print("\nNo student found !!!")
+def updateStudent():
+    name = input("Enter the name of the student: ").lower()
+
+    if name not in STUDENTS:
+       print("\nNo student found !!!")
+       return
+
+    marks = STUDENTS[name]
+
+    marks["Maths"] = getMarks("Maths")
+    marks["Physics"] = getMarks("Physics")
+    marks["Chemistry"] = getMarks("Chemistry")
+
+    print("\nStudent marks updated !!!")
     return
+
 
 def showStudent():
 
-    name = input("Enter the name of the student: ")
+    name = input("Enter the name of the student: ").lower()
 
-    for studentName, marks in STUDENTS.items():
-        if studentName == name:
-            print("\n")
-            printStudent(studentName, marks)
-            return
+    if name in STUDENTS:
+        print("\n")
+        printStudent(name, STUDENTS[name])
+        return
     print("\nStudent not found !!!")
     return
+
 
 def showAllStudents():
 
@@ -161,6 +197,7 @@ def showAllStudents():
 
     return
 
+
 def topper():
 
     if not STUDENTS:
@@ -172,11 +209,13 @@ def topper():
     topPercentage = 0
 
     for studentName, marks in STUDENTS.items():
-        if marks["Percentage"] >= topPercentage:
+        studentPercentage = calculatePercentage(marks)
+        if studentPercentage >= topPercentage:
             topStudent = studentName
-            topPercentage = marks["Percentage"]
-    print(f"Topper: {topStudent}, % : {topPercentage}")
+            topPercentage = studentPercentage
+    print(f"Topper: {topStudent.capitalize()}, % : {topPercentage:.2f}")
     return
+
 
 def classAverage():
     if not STUDENTS:
@@ -187,55 +226,61 @@ def classAverage():
     classAverage = 0
 
     for studentName, marks in STUDENTS.items():
-        classAverage += marks["Percentage"]
+        classAverage += calculatePercentage(marks)
     classAverage = classAverage / len(STUDENTS)
 
-    print(f"\nClass Average: {classAverage} %")
+    print(f"\nClass Average: {classAverage:.2f} %")
     return
+
 
 def deleteStudent():
 
-    studentName = input("Enter the student name: ")
-    exists = False
-    for student, marks in STUDENTS.items():
-        if studentName == student:
-            printStudent(student, marks)
-            prompt = input(
-                f"Are u sure that u want to delete {studentName} (y/n): "
-            ).lower()
-            if prompt == "y" or prompt == "yes":
-                exists = True
-                break
-            elif prompt == "n" or prompt == "no":
-                print("Operation cancelled !!!")
-                return
-    if exists:
+    studentName = input("Enter the student name: ").lower()
+
+    if studentName not in STUDENTS:
+        print("Student not found !!!")
+        return
+
+    printStudent(studentName, STUDENTS[studentName])
+
+    prompt = input(
+        f"Are you sure you want to delete {studentName.capitalize()} (y/n): "
+    ).lower()
+
+    if prompt in ("y", "yes"):
         del STUDENTS[studentName]
         print("Student deleted successfully !!!")
-        return
-    print("Student not found !!!")
-    return
+
+    elif prompt in ("n", "no"):
+        print("Operation cancelled !!!")
+
+    else:
+        print("Invalid choice !!!")
+
 
 def saveData():
     fileName = input("Enter the file name: ")
     filePath = os.path.join(os.getcwd(), f"{fileName}.json")
-    with open(filePath, "w+") as f:
+    with open(filePath, "w") as f:
         json.dump(STUDENTS, f, indent=4)
     print(f"file path: {filePath}")
     return
 
+
 def loadData():
+    try:
+        global STUDENTS
+        filePath = input("Enter the file path: ")
 
-    global STUDENTS
-    filePath = input("Enter the file path: ")
-
-    if not os.path.exists(filePath):
-        print("Invalid file path !!!")
+        with open(filePath, "r") as f:
+            STUDENTS = json.load(f)
+        print("file loaded successfully !!!")
         return
-
-    with open(filePath, "r+") as f:
-        STUDENTS = json.load(f)
-    print(f"file loaded successfully !!!")
-    return
+    except FileNotFoundError:
+            print("Invalid file path !!!")
+            return
+    except json.JSONDecodeError:
+        print("Invalid JSON file !!!")
+        return
 
 menu()
