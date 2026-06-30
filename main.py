@@ -5,7 +5,6 @@ import os
 
 STUDENTS = {}
 
-
 def clearConsole():
     if os.name == "nt":
         os.system("cls")
@@ -20,7 +19,6 @@ def studentTemplate(marks):
         "Chemistry": marks[2]
     }
 
-
 def printStudent(studentName, marks):
     print("\nName: ", studentName.capitalize(), "\n")
     print("-----Marks-----\n")
@@ -29,7 +27,6 @@ def printStudent(studentName, marks):
     print("Chemistry: ", marks["Chemistry"], "\n")
     print(f"Percentage: {calculatePercentage(marks):.2f}\n")
     print("-" * 15, "\n")
-
 
 def menu():
 
@@ -114,12 +111,10 @@ def menu():
 def calculatePercentage(marks):
     return (marks["Maths"] + marks["Physics"] + marks["Chemistry"])/3
 
-
 def checkDuplicates(name):
     if name in STUDENTS:
         print("Name already exists !!!")
         return True
-
     return False
 
 def getMarks(subject):
@@ -191,7 +186,6 @@ def showAllStudents():
 
     for studentName, marks in STUDENTS.items():
         print(f"===== Student {i} =====\n")
-
         printStudent(studentName, marks)
         i += 1
 
